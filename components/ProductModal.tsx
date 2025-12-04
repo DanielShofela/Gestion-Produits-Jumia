@@ -29,6 +29,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSkuTouched, setIsSkuTouched] = useState(false);
 
+  // Reset form when modal opens or initialData changes
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -39,23 +40,27 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
     }
   }, [initialData, isOpen]);
 
+  // SKU Generation Logic
   const generateSKU = (name: string, category: string, variation: string) => {
     const clean = (str: string) => 
-      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+      str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
          .replace(/[^a-zA-Z0-9]/g, '') // Remove special chars
-         .toUpperCase();
+         .toUpperCase() : '';
 
     const p1 = clean(category).substring(0, 3);
-    const p2 = clean(name).substring(0, 4);
-    const p3 = clean(variation).substring(0, 4);
+    const p2 = clean(name).substring(0, 3);
+    const p3 = clean(variation).substring(0, 3);
     
+    // Combine parts with hyphens
     const parts = [p1, p2, p3].filter(p => p.length > 0);
+    
     if (parts.length === 0) return '';
     return parts.join('-');
   };
 
-  // Auto-generate SKU when fields change, if not touched
+  // Auto-generate SKU when fields change, if not manually modified
   useEffect(() => {
+    // Only run for new products (no initialData) and if user hasn't manually edited the SKU field
     if (!isOpen || initialData || isSkuTouched) return;
 
     const newSku = generateSKU(formData.name, formData.category, formData.variation);
@@ -67,6 +72,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
+    // If user manually types in SKU, stop auto-updates
     if (name === 'sku') {
       setIsSkuTouched(true);
     }
@@ -77,10 +83,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
     }));
   };
 
+  // Button to force re-generation
   const handleForceRegenerateSku = () => {
     const newSku = generateSKU(formData.name, formData.category, formData.variation);
     setFormData(prev => ({ ...prev, sku: newSku }));
-    setIsSkuTouched(false); // Reset touched state so it continues to auto-update until edited again
+    setIsSkuTouched(false); // Reset touched state so it continues to auto-update
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -174,6 +181,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ isOpen, onClose, onS
                           <RefreshCw className="h-4 w-4" />
                         </button>
                       </div>
+                      <p className="mt-1 text-xs text-gray-500">Auto-généré: {formData.sku || '...'}</p>
                     </div>
                   </div>
 
