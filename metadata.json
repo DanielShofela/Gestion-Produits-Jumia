@@ -1,0 +1,5 @@
+{
+  "name": "Jumia Product Manager",
+  "description": "A comprehensive dashboard for managing Jumia product listings, calculating margins automatically, and exporting data.",
+  "requestFramePermissions": []
+}
