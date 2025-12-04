@@ -1,15 +1,8 @@
-import { GoogleGenAI } from "@google/genai";
-
-// Note: In a real production app, this key should be proxied via a backend.
-// For this client-side demo, we use the env variable directly.
-const API_KEY = process.env.API_KEY || '';
+import { GoogleGenAI, Type } from "@google/genai";
 
 export const generateDescription = async (name: string, category: string, variation: string) => {
-  if (!API_KEY) {
-    throw new Error("API Key manquante. Veuillez configurer votre clé API Gemini.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  // Use process.env.API_KEY directly as required by guidelines
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const prompt = `
     Agis comme un expert marketing e-commerce pour Jumia.
@@ -18,12 +11,6 @@ export const generateDescription = async (name: string, category: string, variat
     Produit: ${name}
     Catégorie: ${category}
     Variation: ${variation}
-
-    Format de réponse souhaité (JSON uniquement):
-    {
-      "shortDesc": "...",
-      "longDesc": "..."
-    }
   `;
 
   try {
@@ -31,7 +18,21 @@ export const generateDescription = async (name: string, category: string, variat
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
-        responseMimeType: 'application/json'
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            shortDesc: {
+              type: Type.STRING,
+              description: "Une description courte (1 phrase d'accroche)",
+            },
+            longDesc: {
+              type: Type.STRING,
+              description: "Une description longue (3 points clés avec avantages)",
+            },
+          },
+          required: ["shortDesc", "longDesc"],
+        },
       }
     });
 
